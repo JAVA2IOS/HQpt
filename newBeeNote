@@ -61,7 +61,26 @@ GCD
 
 多线程  NSOperationQueue(操作队列) NSOperation(操作)  基于GCD的高一层的封装
 	操作相当于GCD中的任务，操作队列相当于队列
-	相较于GCD，操作之间可以添加依赖关系，操作执行也可以取消，操作执行会产生状态包括(isExcuting,isFinished,isCancelled)，可以使用KVO进行观察
-	
+	相较于GCD，操作之间可以添加依赖关系，操作执行也可以取消(NSOperation 中的cancel方法)，操作执行会产生状态包括(isExcuting,isFinished,isCancelled)，可以使用KVO进行观察
 
+	NSOperation 是一个抽象类，需要去继承实现该类，系统给了两个子类：NSInvocationOperation和NSBlockOperation
+		如果不适用NSOperationQueue队列，单独使用NSOperation时，是同步执行操作的。
+		[[NSInvocationOperation alloc] initWithTarget:selector:object:];
+		然后需要启动父类NSOperation的start方法，启动当前操作
+		NSBlockOperation 初始化的时候讲操作放在block方法当中执行，然后同理执行start方法
+			额外功能  - addExecutionBlock:^{} 可以继续向该操作当中继续添加任务，***** 但是如果添加过多的话，会开启新的线程来
+		自定义NSOperation时，需要重写start main方法
+		main ：主要任务实现在当前方法，需要注意NSOperation的变化状态
+		NSOperation可以添加依赖关系  addDependency:(NSOperation *)op  使得当前操作依赖于op操作完成，可以移除 removeDependency
+		NSOperation可以设置优先级的顺序  setQueuePriority:  对于添加到队列当中的操作会进入就绪状态，当多个操作有优先级时，操作取决于操作之间的依赖关系，依赖前者的操作执行完毕之前都算是准备就绪状态
+		但是操作执行优先取决于 准备就绪状态 > 操作的优先级
 
+	NSOperationQueue 主要分为两种  主队列，自定义队列(分为串行/并发队列)
+		主队列 [NSOperationQueue mainQueue]
+		自定义队列  NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+			添加操作方法  addQueue:  此时不需要手动启动NSOperation start方法，添加的时候已经调用了start方法
+			关于如何执行串行还是并发，需要设置队列的并发操作数的属性 maxConcurrentOperationCount 默认设置-1，不限制
+				为1时，队列串行，值执行串行队列
+				大于1时，并发队列，操作并发执行，但是当前值限制于系统，最大不会超过系统的默认最大值，即使手动设置
+线程的同步锁  NSLock
+	同步锁在多个操作之间对共享资源修改时起到防止数据错乱的作用
