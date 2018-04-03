@@ -1,1 +1,27 @@
 GCD + NSOperationQueue
+
+GCD
+会自动管理线程的生命周期（创建线程、调度任务以及销毁线程），不需要编写任务线程管理的代码，只需要实现执行的任务
+核心概念：任务 + 队列
+函数中的block中的代码即为需要执行的任务
+队列的执行方法：
+	同步执行dispatch_sync(queue,^{})
+		不具备开启新线程的能力，会阻塞当前的线程
+	异步执行dispatch_async(queue,^{})
+		不会阻塞当前线程，可以开启新的线程
+队列，执行方法当中的queue参数即为队列，表示当前的任务执行添加到指定的队列当中执行。任务执行为先进先出(FIFO)原则
+	一般有三种：
+		dispatch_get_main()主线程
+		dispatch_get_gloable_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0(不设置0，返回的有可能为Null))全局并发队列(三种优先级)
+		dispatch_queue_t	自定义手动创建队列(可以创建为串行serial或者并发concurrent队列(并发性效果只在异步执行(async)时有效))
+
+同/异步 + 串行/并发队列  组合会形成不同的执行效果
+同 + 串  ： 顺序执行
+同 + 并 ： 顺序执行 (没有开启新的线程，并发执行的效果只在异步执行的时候有效)
+异 + 串 ： 顺序执行 (开启了新的线程)
+异 + 并发 ： 并发执行 （开启了新的线程，并发执行）
+
+额外的  主队列(dispatch_get_main())，同步时会造成死锁
+
+延时执行
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(延迟秒数 * NSEC_PER_SEC)), queue, ^{});
