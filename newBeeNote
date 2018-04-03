@@ -25,3 +25,36 @@ GCD
 
 延时执行
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(延迟秒数 * NSEC_PER_SEC)), queue, ^{});
+
+栅栏方法 dispatch_barrier_async (需要之前的并发任务执行完后才执行当前任务，为异步执行，前提，当前队列为并发队列，前面的任务为异步执行的并发任务)
+
+单例
+	dispatch_once
+	创建单例
+		static 确保常量不再重新初始化
+		static Class *class = nil;
+		static dispatch_once_t onceToken;
+		dispatch_once(&onceToken, ^{
+			class = [[Class alloc] init];
+		});
+
+		return class;
+
+快速迭代方法（循环）dispatch_apply(需要迭代的次数, queue, ^(size_t index 迭代的第几次){});
+
+*** 队列组 dispatch_group
+	dispatch_group_enter(group) 和dispatch_group_leave(group)成对出现，可以防止共用的数据被错误改写(多个任务更新同一个数据时有可能出现该情况)
+	创建队列组  dispatch_group_ t group = dispatch_group_create();
+	 dispatch_group_async(group, queue, ^{});
+
+	 等待前面的任务全部完成，执行以下任务，一般回到主线程通知
+	 dispatch_group_notify(group, queue, ^{})
+	 额外的  等待队列  dispatch_group_wait(group, 时间)表示等待前面的任务执行完后执行当前队列，或者等待时间结束后，执行当前队列，但是为阻塞当前线程
+
+
+** 线程同步问题  dispatch_semaphore  信号量  使用计数功能，当计数功能为0时，不执行当前数据，当计数大于0时，可以通过
+		dispatch_semaphore_create: 创建一个信号量并初始化线程信号量
+		dispatch_semaphore_signal:发送新号，让信号量 +1
+		dispatch_semaphore_wait : 让信号量 - 1 信号量为0时,阻塞当前线程，否则执行方法
+作用 ： 将多个异步执行的任务转换为同步执行， 保证线程的安全，共用的数据在多个队列中时可以为共用的数据加同步锁，防止数据错乱
+
