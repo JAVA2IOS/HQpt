@@ -58,3 +58,10 @@ GCD
 		dispatch_semaphore_wait : 让信号量 - 1 信号量为0时,阻塞当前线程，否则执行方法
 作用 ： 将多个异步执行的任务转换为同步执行， 保证线程的安全，共用的数据在多个队列中时可以为共用的数据加同步锁，防止数据错乱
 
+
+多线程  NSOperationQueue(操作队列) NSOperation(操作)  基于GCD的高一层的封装
+	操作相当于GCD中的任务，操作队列相当于队列
+	相较于GCD，操作之间可以添加依赖关系，操作执行也可以取消，操作执行会产生状态包括(isExcuting,isFinished,isCancelled)，可以使用KVO进行观察
+	
+
+
