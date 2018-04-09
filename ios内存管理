@@ -25,3 +25,44 @@ ios内存管理
 	 copy 拷贝一份当前数据到新的地址中
 
 	 *block需要使用copy修饰，arc中如果不添加copy修饰符，系统自动添加copy修饰符使用,作用是，将block从栈区添加到堆区内管理
+
+	 copy 和 strong  一个是引用，另一个是拷贝复制，使用copy拷贝复制一份数据，可以防止引用的变量修改时，成员变量也被以外修改
+
+runtime
+	代码在运行过程中会被转换为runtime的C代码执行
+		一个调用方法 [target doMethod] 会被转换为 objc_msgSend(target, @selector(doMethod));
+
+	相关定义
+		方法 typedef struct objc_method *Method;
+		变量 typedef struct objc_ivar *Ivar;
+		类别 typedef struct objc_category *Category;
+		类中的属性 typedef struct objc_property *objc_property_t;
+
+		类在runtime中表示为
+			struct objc_class {
+				Class isa; //一个isa指针，指向当前的类对象
+				Class super_class; // 指向父类，如当前即为父类，该指针指向nil
+				long version;
+				long info;
+				long instance_size;
+				struct objc_ivar_list *ivars;	// 存放着成员变量的列表
+				struct objc_method_list *methodLists;	// 存放着方法列表
+				struct objc_cache *cache;	// 缓存
+				struct objc_protocol_list *protocols;	// 存放协议列表
+			}
+		针对上述类的成员，可以分别使用不同的方法获取到类中的内容
+			获取类的属性列表
+			objc_property_t *propertyLists = class_copyPropertyList([Class 类名], &count成员个数)
+			获取属性名  const char *propertyName = property_getName(propertyLists[i])  [NSString stringWithUTF8String:propertyName];
+			获取方法列表
+			Method *methodlists = class_copyMethodList([Class 类型], &count方法个数) 获取单个方法 SEL method = method_getName(methodlists[i])
+			获取成员变量列表 
+			Ivar *ivarLists = class_copyIvarList([Class 类名], &count成员变量个数) 获取成员变量 const chart *ivarName = ivar_getName(ivarlists[i])
+			获取协议
+KVO底层实现原理
+	是基于runtime机制实现的，
+	当类的其中某个属性被观察时，系统就会在运行期(runtime)动态创建一个派生类(NSKVONotifying_<ClassName>)，这个派生类实现了基类当中的任何属性setter方法，并且将类的isa
+		指针变成指向这个派生类(NSKVONotifying_<ClassName>)，从而将类属性的setter变成执行派生类的setter方法，同时，调用了willChangeValueForKey: 记录旧值
+		didChangeValueForKey:记录新值，最后再调用observeValueForKey:ofObject:change:context:
+		
+
