@@ -13,3 +13,29 @@
 				思路，每次比较获取最小的值，放在数组的最前面，最大的值自然而然排在了最后。
 		快速排序
 		
+
+二分法排序
+	(start + end) / 2 = mid
+
+	沙盒文件目录属性
+		应用程序包  包含了应用程序的源文件
+		Documents	最常用的目录，当前文件下的内容会iTunes进行同步，适合存储重要数据
+		Library
+			Caches	iTunes不会进行同步，适合存储体积大不需要备份的数据
+			Preferences	会同步次文件夹的内容，通常保存应用的设置信息
+		tmp	存储临时性的文件，程序可能没运行时就会删除该目录下的文件，不同步
+	plist文件保存，通过xml的方式进行保存
+		保存类型：NSArray, NSMutableArray, NSDictionary, NSMut..., NSData, NSMut.., NSDate, NSNumber, NSString, NSMut..
+
+	获得文件路径
+	NSString *filePath = [NSSearchPathForDirctores....];
+	读取文件  initWithContensOfFile:fileName
+	写入	writeToFile:atomically:YES;是否需要先写入一个文件
+
+	开启图形上下文
+	UIGraphicsBeginImageContextWithOptions(CGSize, YES, 0);
+	使用drawInRect绘制图片
+	从当前上下文获取图片，
+	UIImage *image = UIGraphicsGetImageFromCurrentContext();
+	关闭上下文
+	UIGraphicsEndImageContext();
