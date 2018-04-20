@@ -1,0 +1,18 @@
+MVVM架构模式
+
+model + view + viewmodel
+
+// 从数据更新视图显示
+model -> viewmodel -> view
+
+
+viewmodel  中引用model，获取数据绑定到model当中
+view 中引用viewmodel  根据viewmodel响应更新当前文本
+
+猜想：kvo观察model属性变化，在viewmodel当中响应方法(method)，这个方法(method)中更新view的操作
+	view操作响应viewmodel当中的某个方法(method)，这个方法又更新model当中数据
+
+
+	例如：viewmodel.model = "";
+		 view.viewmodel = "";
+监听更新数据
