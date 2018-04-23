@@ -1,0 +1,57 @@
+Scoket编程
+网络应用层：物理层、数据链路层、网络层、传输层、会话层、表示层和应用层
+	什么是Tcp/ip
+		tcp是传输层的一种协议
+		ip是网络层的一种协议
+	http是应用层的一种协议
+	什么事scoket变成
+		scoket套接字  是通信的基石，支持tcp/ip协议的网络通信基本操作单元，包含了通信的五种信息：连接使用的协议、本地主机ip、本地协议端口、远程主机ip，远程协议端口
+
+	原理
+	应用层通过传输层进行数据通信时，tcp会遇到同时为多个程序进程提供并发服务，多个tcp连接或者多个程序进程可能需要同一个tcp协议端口传输数据，为了区别不同的应用程序进程和连接，许多计算机操作系统为应用程序与tcp/ip交互提供了套接字(Scoket)接口，应用层可以和传输层通过scoket接口，区分不同的应用进程或网络连接的通信，实现数据传输的并发服务。
+		总结：由于tcp会于遇到多程序并发传输数据，所以为了区别不同的程序或者连接，通过提供不同的scoket来识别不同的网络连接的通信。
+
+	scoket类型
+		流式scoket(Scoket_Stream)，数据报式scoket(scoket_dgram)
+		流式：面向连接的针对于tcp服务应用，
+		数据报式：无连接的，服务于udp。
+
+	流程，以下流程只针对客户端
+		tcp：							udp:
+			scoket();	//创建scoket
+			connect();	// 客户端连接		**没有当前方法
+			send();	// 客户端发送数据		sendto，发送数据
+			recv();	// 客户端接收数据		recvfrom() 接收数据
+			close();	// 释放套接字
+	scoket编程中，tcp建立服务端连接会经过三次握手，经过三次握手确认连接以后，才会真正的开始发送数据
+		tcp标识位有6中：SYN(synchronous建立联机), ACK(acknowledgement 确认),PSH(push传送),FIN(finish结束),RST(reset重置),URG(urgent禁忌)
+		第一次：客户端发送请求连接，发送syn = 1，随机产生seq number(顺序号码)数据包发送到服务端，服务端由于syn = 1，确认要求建立连接要求，一般syn = 0
+		第二次：服务器发送 确认号码ack number = (seq number + 1)，syn = 1, ack = 1 随机产生的顺序号码seq包，用来确认建立联机信息
+		第三次：客户端检查ack number是否正确以及是否 ack = 1? 如果正确，客户端会再发送ack number = 服务器端产生的seq number + 1 以及ack = 1，
+		 服务器端接受到seq 和ack = 1 时，建立连接
+
+		 总结：  SYN_SEND -> SYN_RECV -> SYN_ESTABLISHED
+		 	客户端会发送seq number 随机数，以及syn = 1，产生一个状态  客户端进入**SYN_SEND**状态
+		 	服务端接受syn = 1，如果正确，产生ack number = 客户端的seq number + 1，发送一个新的seq number 随机数，ack = 1，服务器进入 **SYN_RECV**状态
+		 	客户端接收到ack =1 以及ack number 是否正确， 如果正确发送新的 ack number = 服务端的seq number + 1, ack = 1，服务端收到ack number 和ack = 1 时，确认建立接连。客户端和服务端都进入  **SYN_ESTABLISHED**状态，确认连接完成.
+
+		 tcp四次握手断开连接
+		 由于tcp连接是全双工的，因此每个方向都应该单独关闭
+		 第一次：客户端发送一个FIN = 1来确认数据传送关闭
+		 第二次：服务器收到FIN = 1后，发送一个 ack = 1， ack number = seq number + 1， FIN占用一个seq number,
+		 第三次：服务端关闭连接，发送一个FIN = 1给客户端
+		 第四次：客户端收到ack 确认， 并将seq number + 1 
+Socket 和 Http 区别
+	正常情况下，socket 连接就是tcp连接，因此一旦建立，通信双发即可开始相互发送数据内容，并且长连接，但是由于通信过程中需要穿越多个中间节点，比如路由器，网关以及防火墙，
+		由于大部分防火墙会关闭长时间处位于非活跃状态的连接，所以会导致socket连接断开，所以需要不断地告诉网络处于活跃状态。
+		http连接是应用层协议，连接使用的是请求-响应方式，即需要客户端主动发送请求建立连接发送数据，服务器无法主动发送请求数据，但是scoket可以主动发送数据到客户端。
+tcp/udp区别
+	tcp面向连接的方式，需要先确认双方建立连接后才能发送数据，http协议底层是基于tcp/ip协议的
+	udp是无连接的，不关心对方是否建立连接，只发送数据，不需确认对方是否能够接收到数据。数据可能不大安全。另一方面据说udp对服务器的压力较小，tcp对服务器的需要压力比较大
+	tcp，数据安全可靠，在交换数据之前，双方需要建立一个tcp连接，提供超时重发，丢弃重复数据以及检验数据等功能
+	udp，只是简单讲数据通过网络层将数据发送出去，没有超时重发等机制，而且不需要建立连接，所以传输速度相对于udp较快
+iOS使用scoket编程方式
+	1：BSD Socket 基于UNIx系统的网络接口
+	2：CFSocket 原生系统提供的接口方式
+	3：AsyncSocket
+CocoaAsyncSocket
