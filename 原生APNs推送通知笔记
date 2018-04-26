@@ -1,0 +1,14 @@
+原生APNs推送通知笔记
+	创建证书两种方式
+		1、创建APNs keys，在开发者账号中心找到keys里添加key，当前的Key只能下载一次，生成一个.p8文件，将该文件给后台进行配置
+		2、创建p12文件，创建APPID时，点击edit ，在推送设置里面选择 创建certificate，得到一个证书的p12文件以及一个密钥p12文件，将两个文件合成pem文件交给后台配置
+	在项目配置推送
+	1、在设置里面target -> capabilites -> 打开push notifications，打开background modes ，勾选remote Notification
+	2、在appdelegate文件中，配置推送，注册device Token，获取到deviceToken后发送到后台，通过delegate中的方法实现程序在前台以及后台分别收到推送通知的响应逻辑
+
+推送流程
+	app注册APNs消息推送
+	ios的APNs Server服务器上获取到deviceToken设备号，将deviceToken发送给app
+	app将deviceToken发送给自己的服务器
+	服务器向APNs Server服务器发送消息，包含了deviceToken
+	APNs Server向app发送消息

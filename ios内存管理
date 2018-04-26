@@ -46,10 +46,11 @@ runtime
 				long info;
 				long instance_size;
 				struct objc_ivar_list *ivars;	// 存放着成员变量的列表
-				struct objc_method_list *methodLists;	// 存放着方法列表
+				struct objc_method_list **methodLists;	// 存放着方法列表
 				struct objc_cache *cache;	// 缓存
 				struct objc_protocol_list *protocols;	// 存放协议列表
 			}
+		**为什么category不能添加属性：是因为运行期已经固定分配了内存大小，属性在结构体内是保存这成员变量的指针列表是固定的，而方法则是以指针的指针保存的，指针的大小是固定的，但是指向的内存大小可以改变。
 		针对上述类的成员，可以分别使用不同的方法获取到类中的内容
 			获取类的属性列表
 			objc_property_t *propertyLists = class_copyPropertyList([Class 类名], &count成员个数)
