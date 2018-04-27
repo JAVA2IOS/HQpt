@@ -2,7 +2,7 @@ ios内存管理
 	原理
 	objc使用引用计数(Reference counting)来管理内存，对象使用创建时，引用计数+1，使用结束时引用计数-1，只有当引用计数变为0时，当前对象内存会被释放回收。
 	原因
-	 objc的内存管理中，普通的常量变量一般放在栈区内，这是一段连续的内存空间，根据先进先出(FIFO)原则，由系统内部自行管理该段内存空间
+	 objc的内存管理中，普通的常量变量一般放在栈区内，这是一段连续的内存空间，根据先进出后出原则，由系统内部自行管理该段内存空间
 	 而Objc的一般引用型对象(NS开头)时，是分配在堆区的内存，是无序分配的，所以容易导致，对象与对象之间产生一段不可控的内存间隙，如果不及时回收，会造成内存的浪费，当引用类型对象
 	 分配过多时，有可能造成内存的溢出，当前的内存管理方式(mrc,arc)都是主要针对堆区的内存管理，栈区的内存管理是由系统内部管理的。
 
@@ -39,6 +39,7 @@ runtime
 		类中的属性 typedef struct objc_property *objc_property_t;
 
 		类在runtime中表示为
+
 			struct objc_class {
 				Class isa; //一个isa指针，指向当前的类对象
 				Class super_class; // 指向父类，如当前即为父类，该指针指向nil
@@ -46,12 +47,42 @@ runtime
 				long info;
 				long instance_size;
 				struct objc_ivar_list *ivars;	// 存放着成员变量的列表
-				struct objc_method_list **methodLists;	// 存放着方法列表
-				struct objc_cache *cache;	// 缓存
+				struct objc_method_list **methodLists;	// 存放着方法列表的指针
+				struct objc_cache *cache;	// 缓存，存放着最近使用过的方法列表
 				struct objc_protocol_list *protocols;	// 存放协议列表
 			}
+
+			类别的结构体
+			struct objc_category {
+			    char * _Nonnull category_name                            OBJC2_UNAVAILABLE;
+			    char * _Nonnull class_name                               OBJC2_UNAVAILABLE;
+			    struct objc_method_list * _Nullable instance_methods     OBJC2_UNAVAILABLE;
+			    struct objc_method_list * _Nullable class_methods        OBJC2_UNAVAILABLE;
+			    struct objc_protocol_list * _Nullable protocols          OBJC2_UNAVAILABLE;
+			} 
+			可以看到category结构体里面是没有成员变量的
 		**为什么category不能添加属性：是因为运行期已经固定分配了内存大小，属性在结构体内是保存这成员变量的指针列表是固定的，而方法则是以指针的指针保存的，指针的大小是固定的，但是指向的内存大小可以改变。
+
+			成员变量(ivar)(成员名，类型名)
+			struct objc_ivar {
+			    char * _Nullable ivar_name                               OBJC2_UNAVAILABLE;
+			    char * _Nullable ivar_type                               OBJC2_UNAVAILABLE;
+			    int ivar_offset                                          OBJC2_UNAVAILABLE;
+			#ifdef __LP64__
+			    int space                                                OBJC2_UNAVAILABLE;
+			#endif
+			} 
+
+			方法结构体(method), SEL 方法名，类似指针， IMP实现方法
+			truct objc_method {
+			    SEL _Nonnull method_name                                 OBJC2_UNAVAILABLE;
+			    char * _Nullable method_types                            OBJC2_UNAVAILABLE;
+			    IMP _Nonnull method_imp                                  OBJC2_UNAVAILABLE;
+			}
+			** 由于SEL使用时，只引用了方法名@selector(methodName:)，没有识别参数个数，所以oc理论上是无法实现重载(重方法名，参数类型不同)的
 		针对上述类的成员，可以分别使用不同的方法获取到类中的内容
+
+			类缓存(objc_cache)，将最近使用过的方法缓存(缓存的@selector选择器，SEL)，所以当objc_msgSend时，优先查找objc_cache
 			获取类的属性列表
 			objc_property_t *propertyLists = class_copyPropertyList([Class 类名], &count成员个数)
 			获取属性名  const char *propertyName = property_getName(propertyLists[i])  [NSString stringWithUTF8String:propertyName];
@@ -65,5 +96,19 @@ KVO底层实现原理
 	当类的其中某个属性被观察时，系统就会在运行期(runtime)动态创建一个派生类(NSKVONotifying_<ClassName>)，这个派生类实现了基类当中的任何属性setter方法，并且将类的isa
 		指针变成指向这个派生类(NSKVONotifying_<ClassName>)，从而将类属性的setter变成执行派生类的setter方法，同时，调用了willChangeValueForKey: 记录旧值
 		didChangeValueForKey:记录新值，最后再调用observeValueForKey:ofObject:change:context:
+
+@dynamic 和 @synthesize 的区别
+	dynamic 告诉编译器  setter/getter方法由用户自己实现，如果不实现，属性赋值时，运行时会出现问题
+	synthesize 编译器自动会实现setter/getter方法。
+
+runtime方法
+	结构体  objc_class, objc_object
+	objc_object 只包含了一个 objc_class isa指针,
+	objc_class 结构体在上方描述
+	消息转发
+		消息调用流程：先搜索类对象的方法列表，如果没有就继续往上搜索父类的方法列表，如果所有都找不到，会回调执行doesNotRecognizeSeletor，方法搜索的最后三次机会
+			1、动态解析方法 +(BOOL) resolveInstanceMethod: 返回YES/NO，YES表示消息已经处理，NO跳到第2步
+			2、执行 - (InstanceType)forwardingTargetForSelector: 给第二个机会，返回一个可以执行方法的对象，否则返回nil
+
 		
 
