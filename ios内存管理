@@ -74,7 +74,7 @@ runtime
 			} 
 
 			方法结构体(method), SEL 方法名，类似指针， IMP实现方法
-			truct objc_method {
+			struct objc_method {
 			    SEL _Nonnull method_name                                 OBJC2_UNAVAILABLE;
 			    char * _Nullable method_types                            OBJC2_UNAVAILABLE;
 			    IMP _Nonnull method_imp                                  OBJC2_UNAVAILABLE;
@@ -93,7 +93,7 @@ runtime
 			获取协议
 KVO底层实现原理
 	是基于runtime机制实现的，
-	当类的其中某个属性被观察时，系统就会在运行期(runtime)动态创建一个派生类(NSKVONotifying_<ClassName>)，这个派生类实现了基类当中的任何属性setter方法，并且将类的isa
+	当类的其中某个属性被观察时，系统就会在运行期(runtime)动态创建一个派生类(NSKVONotifying_<ClassName>)，这个派生类实现基类当中的属性setter方法（class_addMethod()），并且将类的isa(objc_setClass())
 		指针变成指向这个派生类(NSKVONotifying_<ClassName>)，从而将类属性的setter变成执行派生类的setter方法，同时，调用了willChangeValueForKey: 记录旧值
 		didChangeValueForKey:记录新值，最后再调用observeValueForKey:ofObject:change:context:
 
