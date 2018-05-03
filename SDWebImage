@@ -2,3 +2,4 @@ SDWebImage
 	SDWebImageCache类 缓存管理
 
 	// 初始化时，先配置沙盒文件缓存路径，默认在cache下创建一个目录 /default(nameSpace可以自行修改)
+	// 
