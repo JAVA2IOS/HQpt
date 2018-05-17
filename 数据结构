@@ -39,3 +39,22 @@
 	UIImage *image = UIGraphicsGetImageFromCurrentContext();
 	关闭上下文
 	UIGraphicsEndImageContext();
+	
+	
+	
+	
+	
+	
+	
+	FCModel 第三方框架问题备注
+	schemaVersion 表示含义
+	属性：primaryKey表示含义
+	关于对象的数据更新操作
+	[object  executeUpdateQuery:@"sql语句"]
+	[object save]; 
+	[object save:^{}];	// 更新数据
+	// 或者直接使用类方法来查询数据，详细查看源码
+	// 查询方法，类方法
++ (NSArray *)resultDictionariesFromQuery:(NSString *)query, ...;
+
+	
